@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -29,10 +30,17 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/profile')
+  @Post('/profile')
   async getProfile(@Request() req) {
     console.log('req.user : ', req.user);
     const user = await this.userService.findByEmail(req.user.email);
-    return user;
+    const result = user?.toObject();
+    return {
+      _id: result._id,
+      email: result.email,
+      name: result.name,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+    };
   }
 }
