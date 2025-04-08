@@ -15,4 +15,17 @@ export class AuthController {
       accessToken: access_token,
     };
   }
+
+  @Post('/forgot-password')
+  async forgotPassword(@Request() req) {
+    console.log(req.body.email);
+    return this.authService.forgotPassword(req.body.email);
+  }
+
+  @Post('/reset-password')
+  async resetPassword(@Request() req) {
+    console.log(req.body);
+    const { password, token } = req.body;
+    return this.authService.resetPassword(password, token);
+  }
 }
