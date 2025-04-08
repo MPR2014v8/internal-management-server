@@ -9,10 +9,12 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SessionModule } from 'src/session/session.module';
 
 @Module({
   imports: [
     UserModule,
+    SessionModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

@@ -3,6 +3,7 @@ import { RegisterDto } from './dto/register.dto';
 import { User, UserDocument } from './schema/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { SessionDocument } from 'src/session/schema/session.schema';
 
 @Injectable()
 export class UserService {
@@ -21,6 +22,17 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return this.userModel.find().exec();
+    return this.userModel.find().populate('sessions').exec();
+  }
+
+  async findBySessionId(session: SessionDocument): Promise<UserDocument | null> {
+    console.log('session : ', session);
+    const result = await this.userModel.findOne({sessions:session._id}).exec();
+    return result;
+  }
+
+  async removeSession(userId:string, sessionId:string){
+    await this.userModel.findByIdAndUpdate(userId, { $pull: { sessions: sessionId } }).exec();
+    return `This action removes a #${sessionId} session`;
   }
 }
