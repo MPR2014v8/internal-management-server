@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
+import { MongooseExcetionFilter } from './mongoose-exception.filter';
 
 dotenv.config(); // Load environment variables
 
@@ -21,6 +22,8 @@ async function bootstrap() {
   console.log(
     `Using credentials - User: ${process.env.USER_DB}, Password: ${process.env.PASS_DB}`,
   );
+
+  app.useGlobalFilters(new MongooseExcetionFilter());
 
   await app.listen(port);
   console.log(`Server running on http://localhost:${port}`);
