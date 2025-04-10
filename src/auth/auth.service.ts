@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
 import * as dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
 
 dotenv.config(); // Load environment variables
@@ -55,19 +56,16 @@ export class AuthService {
 
       const randomString = require('crypto').randomBytes(32).toString('hex') + new Date().toISOString();
       const Token = require('crypto').createHash('sha256').update(randomString).digest('hex');
-      const resCreateSession = await this.sessionService.createResetPasswordSession({ token: Token, expiresAt: new Date(Date.now() + 60 * 60 * 1000) });
+      const resCreateSession = await this.sessionService.createResetPasswordSession({ token: Token, expiresAt: new Date(Date.now() + 60 * 60 * 1000), userId: existUser._id as mongoose.Schema.Types.ObjectId });
       
       if (!resCreateSession) {
         throw new Error('Failed to create session for password reset');
       }
       console.log('resCreateSession :: ', resCreateSession);
-      
-      existUser.sessions.push(resCreateSession);
-      await existUser.save();
 
       const from: string = 'testing@resetpassword.com';
       const to: string = email;
-      const subject: string = 'Hi there, this is a link to reset your password';
+      const subject: string = `Hi ${existUser.name}, this is a link to reset your password`;
       const mailTemplate: string = `<h1>Hello</h1><p>This is a link for reset password http://localhost:3001/logins/reset_password/${Token}</p>`;
 
       this.sendMail( from, to, subject, mailTemplate);
@@ -83,19 +81,16 @@ export class AuthService {
   async resetPassword(password: string, token: string) {
     try {
       const session = await this.sessionService.findByToken(token);
-      if (!session) {
-        throw new Error('session not found');
-      }
-      const user = await this.userService.findBySessionId(session);
-      if (!user) {
-        throw new Error('User not found');
-      }
+      if (!session) throw new Error('session not found');
       
+      const user = await this.userService.findById(session.userId as unknown as mongoose.Schema.Types.ObjectId);
+      if (!user) throw new Error('User not found');
+      
+      if (session.expiresAt < new Date()) throw new Error('Session has expired');
       
       user.set('password', password);
       await user.save().then(async () => {
         this.sessionService.remove(session._id as string);
-        this.userService.removeSession(user._id as string, session._id as string);
       });
       console.log('Password reset successfully for user:', user.email);
       

@@ -37,6 +37,6 @@ export class SessionService {
   }
 
   async findByToken(token: string) {
-    return this.sessionModel.findOne({ token:token,expiresAt: { $gt:new Date()} }).exec();
+    return this.sessionModel.findOne({ token:token}).exec();
   }
 }

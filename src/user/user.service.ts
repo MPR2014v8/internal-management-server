@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { User, UserDocument } from './schema/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { SessionDocument } from 'src/session/schema/session.schema';
 
 @Injectable()
@@ -25,9 +25,9 @@ export class UserService {
     return this.userModel.find().populate('sessions').exec();
   }
 
-  async findBySessionId(session: SessionDocument): Promise<UserDocument | null> {
-    console.log('session : ', session);
-    const result = await this.userModel.findOne({sessions:session._id}).exec();
+  async findById(id: mongoose.Schema.Types.ObjectId): Promise<UserDocument | null> {
+    console.log('session : ', id);
+    const result = await this.userModel.findOne({_id:id }).exec();
     return result;
   }
 

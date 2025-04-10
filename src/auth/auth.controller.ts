@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Controller, Post, Request, UseGuards } from '@nestjs/common';
+import { Controller, Post, Request, UseGuards, Res, HttpCode  } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from 'src/auth/local-auth.guard';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -17,9 +18,10 @@ export class AuthController {
   }
 
   @Post('/forgot-password')
-  async forgotPassword(@Request() req) {
+  async forgotPassword(@Request() req, @Res() res: Response) {
     console.log(req.body.email);
     return this.authService.forgotPassword(req.body.email);
+    
   }
 
   @Post('/reset-password')
