@@ -31,8 +31,10 @@ export class UserService {
     return result;
   }
 
-  async removeSession(userId:string, sessionId:string){
-    await this.userModel.findByIdAndUpdate(userId, { $pull: { sessions: sessionId } }).exec();
+  async removeSession(userId: string, sessionId: string) {
+    await this.userModel
+      .findByIdAndUpdate(userId, { $pull: { sessions: sessionId } })
+      .exec();
     return `This action removes a #${sessionId} session`;
   }
 }

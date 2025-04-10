@@ -1,42 +1,53 @@
-import { Injectable } from '@nestjs/common';
-import { createResetPasswordSessionDto, CreateSessionDto } from './dto/create-session.dto';
-import { UpdateSessionDto } from './dto/update-session.dto';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { createResetPasswordSessionDto } from './dto/create-session.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Session, SessionDocument } from './schema/session.schema';
 import { Model } from 'mongoose';
 
 @Injectable()
 export class SessionService {
-  constructor(@InjectModel(Session.name) private sessionModel: Model<SessionDocument>) {}
-
-  create(createSessionDto: CreateSessionDto) {
-    return 'This action adds a new session';
-  }
+  constructor(
+    @InjectModel(Session.name) private sessionModel: Model<SessionDocument>,
+  ) {}
 
   findAll() {
-    return this.sessionModel.find().exec();
+    try {
+      return this.sessionModel.find().exec();
+    } catch (error) {
+      console.log('Error findAll:', error);
+      throw new BadRequestException();
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} session`;
+  async remove(id: string) {
+    try {
+      await this.sessionModel.findByIdAndDelete(id).exec();
+      return `This action removes a #${id} session`;
+    } catch (error) {
+      console.log('Error remove :', error);
+      throw new BadRequestException();
+    }
   }
 
-  update(id: number, updateSessionDto: UpdateSessionDto) {
-    return `This action updates a #${id} session`;
-  }
-
-  remove(id: string) {
-    this.sessionModel.findByIdAndDelete(id).exec();
-    return `This action removes a #${id} session`;
-  }
-
-  createResetPasswordSession(createSessionDto: createResetPasswordSessionDto){
-    // console.log('createSessionDto : ', createSessionDto);
-    const newSession = new this.sessionModel(createSessionDto);
-    return newSession.save();
+  createResetPasswordSession(createSessionDto: createResetPasswordSessionDto) {
+    try {
+      // console.log('createSessionDto : ', createSessionDto);
+      const newSession = new this.sessionModel(createSessionDto);
+      return newSession.save();
+    } catch (error) {
+      console.log('Error createResetPasswordSession :', error);
+      throw new BadRequestException();
+    }
   }
 
   async findByToken(token: string) {
-    return this.sessionModel.findOne({ token:token}).exec();
+    try {
+      return this.sessionModel
+        .findOne({ token:token})
+        .exec();
+    } catch (error) {
+      console.log('Error findByToken :', error);
+      throw new BadRequestException();
+    }
   }
 }
