@@ -5,10 +5,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 
-<<<<<<< HEAD
-=======
-import { Session } from 'src/session/schema/session.schema';
->>>>>>> origin/master
 
 export type UserDocument = User & Document;
 
