@@ -1,11 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ProjectTimeSheetService } from './project-time-sheet.service';
 import { CreateProjectTimeSheetDto } from './dto/create-project-time-sheet.dto';
 import { UpdateProjectTimeSheetDto } from './dto/update-project-time-sheet.dto';
 
 @Controller('project-time-sheet')
 export class ProjectTimeSheetController {
-  constructor(private readonly projectTimeSheetService: ProjectTimeSheetService) {}
+  constructor(
+    private readonly projectTimeSheetService: ProjectTimeSheetService,
+  ) {}
 
   @Post()
   create(@Body() createProjectTimeSheetDto: CreateProjectTimeSheetDto) {
@@ -23,7 +33,10 @@ export class ProjectTimeSheetController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectTimeSheetDto: UpdateProjectTimeSheetDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateProjectTimeSheetDto: UpdateProjectTimeSheetDto,
+  ) {
     return this.projectTimeSheetService.update(+id, updateProjectTimeSheetDto);
   }
 

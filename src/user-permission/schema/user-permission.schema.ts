@@ -4,30 +4,16 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 import { User } from 'src/user/schema/user.schema'; // Import the User schema
 
-export type TimeStampDocument = TimeStamp & Document;
+export type UserPermissionDocument = UserPermission & Document;
 
 @Schema({ timestamps: true })
-export class TimeStamp {
-  @Prop()
-  ip: string;
-
-  @Prop()
-  device: string;
-
-  @Prop({ type: Date })
-  from: Date;
-
-  @Prop({ type: Date })
-  to: Date;
-
-  @Prop({ default: false })
-  isManual: boolean;
-
-  @Prop()
-  remark: string;
+export class UserPermission {
+  @Prop({ required: true })
+  permissionName: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
-  employee: Types.ObjectId;
+  user: Types.ObjectId;
 }
 
-export const TimeStampSchema = SchemaFactory.createForClass(TimeStamp);
+export const UserPermissionSchema =
+  SchemaFactory.createForClass(UserPermission);

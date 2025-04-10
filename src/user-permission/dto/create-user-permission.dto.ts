@@ -1,1 +1,9 @@
-export class CreateUserPermissionDto {}
+import { IsString, IsMongoId } from 'class-validator';
+
+export class CreateUserPermissionDto {
+  @IsString()
+  permissionName: string;
+
+  @IsMongoId()
+  user: string;
+}

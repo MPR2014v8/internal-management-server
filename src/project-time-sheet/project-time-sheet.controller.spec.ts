@@ -11,7 +11,9 @@ describe('ProjectTimeSheetController', () => {
       providers: [ProjectTimeSheetService],
     }).compile();
 
-    controller = module.get<ProjectTimeSheetController>(ProjectTimeSheetController);
+    controller = module.get<ProjectTimeSheetController>(
+      ProjectTimeSheetController,
+    );
   });
 
   it('should be defined', () => {

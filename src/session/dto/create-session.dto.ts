@@ -1,13 +1,20 @@
-import mongoose from "mongoose";
-import { IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, IsDate, IsMongoId } from 'class-validator';
 
-export class createResetPasswordSessionDto {
-  @IsNotEmpty()
-  readonly token: string;
+export class CreateSessionDto {
+  @IsOptional()
+  @IsString()
+  ip?: string;
 
-  @IsNotEmpty()
-  readonly expiresAt: Date;
-  readonly userId: mongoose.Schema.Types.ObjectId;
+  @IsOptional()
+  @IsString()
+  device?: string;
+
+  @IsString()
+  token: string;
+
+  @IsDate()
+  expiresAt: Date;
+
+  @IsMongoId()
+  user: string;
 }
-
-export class CreateSessionDto {}
