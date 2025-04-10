@@ -43,7 +43,7 @@ export class SessionService {
   async findByToken(token: string) {
     try {
       return this.sessionModel
-        .findOne({ token: token, expiresAt: { $gt: new Date() } })
+        .findOne({ token:token})
         .exec();
     } catch (error) {
       console.log('Error findByToken :', error);
