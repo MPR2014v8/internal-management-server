@@ -6,9 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: 'Session', schema: SessionSchema }
-  ])],
+    MongooseModule.forFeature([{ name: 'Session', schema: SessionSchema }]),
+  ],
   controllers: [SessionController],
   providers: [SessionService],
   exports: [SessionService],

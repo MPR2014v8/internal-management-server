@@ -4,6 +4,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+
 import { Session } from 'src/session/schema/session.schema';
 
 export type UserDocument = User & Document;
@@ -25,7 +26,7 @@ export class User {
   @Prop()
   isAdmin: string;
 
-  @Prop({type:[{type: mongoose.Schema.Types.ObjectId, ref: 'Session'}]})
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Session' }] })
   sessions: Session[];
 }
 

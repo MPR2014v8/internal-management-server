@@ -10,6 +10,7 @@ import {
   Body,
   UseGuards,
   Request,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { RegisterDto } from './dto/register.dto';
@@ -21,26 +22,41 @@ export class UserController {
 
   @Post('/register')
   create(@Body() registerDto: RegisterDto) {
-    return this.userService.create(registerDto);
+    try {
+      return this.userService.create(registerDto);
+    } catch (error) {
+      console.log('Error create :', error);
+      throw new BadRequestException();
+    }
   }
 
   @Get()
   findAll() {
-    return this.userService.getAllUsers();
+    try {
+      return this.userService.getAllUsers();
+    } catch (error) {
+      console.log('Error findAll :', error);
+      throw new BadRequestException();
+    }
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('/profile')
   async getProfile(@Request() req) {
-    console.log('req.user : ', req.user);
-    const user = await this.userService.findByEmail(req.user.email);
-    const result = user?.toObject();
-    return {
-      _id: result._id,
-      email: result.email,
-      name: result.name,
-      createdAt: result.createdAt,
-      updatedAt: result.updatedAt,
-    };
+    try {
+      console.log('req.user : ', req.user);
+      const user = await this.userService.findByEmail(req.user.email);
+      const result = user?.toObject();
+      return {
+        _id: result._id,
+        email: result.email,
+        name: result.name,
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
+      };
+    } catch (error) {
+      console.log('Error getProfile :', error);
+      throw new BadRequestException();
+    }
   }
 }

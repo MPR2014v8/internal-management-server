@@ -25,14 +25,20 @@ export class UserService {
     return this.userModel.find().populate('sessions').exec();
   }
 
-  async findBySessionId(session: SessionDocument): Promise<UserDocument | null> {
+  async findBySessionId(
+    session: SessionDocument,
+  ): Promise<UserDocument | null> {
     console.log('session : ', session);
-    const result = await this.userModel.findOne({sessions:session._id}).exec();
+    const result = await this.userModel
+      .findOne({ sessions: session._id })
+      .exec();
     return result;
   }
 
-  async removeSession(userId:string, sessionId:string){
-    await this.userModel.findByIdAndUpdate(userId, { $pull: { sessions: sessionId } }).exec();
+  async removeSession(userId: string, sessionId: string) {
+    await this.userModel
+      .findByIdAndUpdate(userId, { $pull: { sessions: sessionId } })
+      .exec();
     return `This action removes a #${sessionId} session`;
   }
 }

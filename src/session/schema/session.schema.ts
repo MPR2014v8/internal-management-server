@@ -8,17 +8,17 @@ export type SessionDocument = Session & Document;
 
 @Schema({ timestamps: true })
 export class Session {
-    @Prop()
-    ip: string;
+  @Prop()
+  ip: string;
 
-    @Prop()
-    device: string;
+  @Prop()
+  device: string;
 
-    @Prop({ required: true })
-    token: string;
+  @Prop({ required: true })
+  token: string;
 
-    @Prop({ required: true, })
-    expiresAt: Date;
+  @Prop({ required: true })
+  expiresAt: Date;
 }
 
 export const SessionSchema = SchemaFactory.createForClass(Session);
