@@ -1,34 +1,52 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Put,
+} from '@nestjs/common';
 import { ProjectMemberService } from './project-member.service';
 import { CreateProjectMemberDto } from './dto/create-project-member.dto';
-import { UpdateProjectMemberDto } from './dto/update-project-member.dto';
+import { ProjectMember } from './schema/project-member.schema';
 
-@Controller('project-member')
+@Controller('project-members')
 export class ProjectMemberController {
   constructor(private readonly projectMemberService: ProjectMemberService) {}
 
+  // Create a new project member
   @Post()
-  create(@Body() createProjectMemberDto: CreateProjectMemberDto) {
+  async create(
+    @Body() createProjectMemberDto: CreateProjectMemberDto,
+  ): Promise<ProjectMember> {
     return this.projectMemberService.create(createProjectMemberDto);
   }
 
+  // Get all project members
   @Get()
-  findAll() {
+  async findAll(): Promise<ProjectMember[]> {
     return this.projectMemberService.findAll();
   }
 
+  // Get a single project member by ID
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.projectMemberService.findOne(+id);
+  async findOne(@Param('id') id: string): Promise<ProjectMember> {
+    return this.projectMemberService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectMemberDto: UpdateProjectMemberDto) {
-    return this.projectMemberService.update(+id, updateProjectMemberDto);
+  // Update an existing project member
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateProjectMemberDto: CreateProjectMemberDto,
+  ): Promise<ProjectMember> {
+    return this.projectMemberService.update(id, updateProjectMemberDto);
   }
 
+  // Delete a project member by ID
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.projectMemberService.remove(+id);
+  async remove(@Param('id') id: string): Promise<void> {
+    return this.projectMemberService.remove(id);
   }
 }
