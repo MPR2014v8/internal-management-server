@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
-import { RegisterDto } from './dto/register.dto';
+import { CreateUserDto } from './dto/register.dto';
 import { User, UserDocument } from './schema/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
@@ -9,7 +10,7 @@ import { SessionDocument } from 'src/session/schema/session.schema';
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async create(registerDto: RegisterDto): Promise<User> {
+  async create(registerDto: CreateUserDto): Promise<User> {
     const newUser = new this.userModel(registerDto);
     return newUser.save();
   }
@@ -25,9 +26,11 @@ export class UserService {
     return this.userModel.find().populate('sessions').exec();
   }
 
-  async findById(id: mongoose.Schema.Types.ObjectId): Promise<UserDocument | null> {
+  async findById(
+    id: mongoose.Schema.Types.ObjectId,
+  ): Promise<UserDocument | null> {
     console.log('session : ', id);
-    const result = await this.userModel.findOne({_id:id }).exec();
+    const result = await this.userModel.findOne({ _id: id }).exec();
     return result;
   }
 

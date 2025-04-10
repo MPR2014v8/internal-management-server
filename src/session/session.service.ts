@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { createResetPasswordSessionDto } from './dto/create-session.dto';
+import { createResetPasswordSessionDto } from './dto/reset-password.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Session, SessionDocument } from './schema/session.schema';
 import { Model } from 'mongoose';
@@ -42,9 +42,7 @@ export class SessionService {
 
   async findByToken(token: string) {
     try {
-      return this.sessionModel
-        .findOne({ token:token})
-        .exec();
+      return this.sessionModel.findOne({ token: token }).exec();
     } catch (error) {
       console.log('Error findByToken :', error);
       throw new BadRequestException();

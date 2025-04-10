@@ -13,7 +13,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { RegisterDto } from './dto/register.dto';
+import { CreateUserDto } from './dto/register.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('user')
@@ -21,7 +21,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('/register')
-  create(@Body() registerDto: RegisterDto) {
+  create(@Body() registerDto: CreateUserDto) {
     try {
       return this.userService.create(registerDto);
     } catch (error) {
