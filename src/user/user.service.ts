@@ -23,12 +23,10 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return this.userModel.find().select("-password").exec();
+    return this.userModel.find().exec();
   }
 
-  async findById(
-    id: string,
-  ): Promise<UserDocument | null> {
+  async findById(id: string): Promise<UserDocument | null> {
     console.log('session : ', id);
     const result = await this.userModel.findOne({ _id: id }).exec();
     return result;

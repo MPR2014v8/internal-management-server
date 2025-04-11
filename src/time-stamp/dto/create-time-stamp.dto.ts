@@ -32,6 +32,9 @@ export class CreateTimeStampDto {
   remark?: string;
 
   @IsMongoId()
-  employee: string; // Required field
-  id: number;
+  employee: string | { _id: string };
+
+  @IsOptional()
+  @IsMongoId()
+  _id?: string;
 }

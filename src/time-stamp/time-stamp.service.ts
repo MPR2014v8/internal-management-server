@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -16,21 +17,28 @@ export class TimeStampService {
   async create(
     createTimeStampDtos: CreateTimeStampDto[],
   ): Promise<TimeStamp[]> {
+    // Ensure employee is always a valid ObjectId
     const timeStamps = createTimeStampDtos.map((dto) => ({
       ...dto,
-      employee: new Types.ObjectId(dto.employee),
+      employee:
+        typeof dto.employee === 'string'
+          ? new Types.ObjectId(dto.employee)
+          : new Types.ObjectId(dto.employee._id),
     }));
 
     try {
-      const newTimeStamps = await this.timeStampModel.insertMany(timeStamps, {
-        rawResult: true, // Optional: Helps with debugging
-      });
+      const newTimeStamps = await this.timeStampModel.insertMany(timeStamps);
+
+      // Extract the inserted ObjectIds into an array
+      const insertedIds = newTimeStamps.map((doc) => doc._id);
 
       return this.timeStampModel
-        .find({ _id: { $in: newTimeStamps.insertedIds } })
+        .find({ _id: { $in: insertedIds } })
+        .populate('employee')
         .lean()
         .exec();
     } catch (error) {
+      console.error(`Error creating timestamps: ${error.message}`);
       throw new Error(`Error creating timestamps: ${error.message}`);
     }
   }
@@ -74,20 +82,39 @@ export class TimeStampService {
     const updatedTimeStamps: TimeStamp[] = [];
 
     for (const dto of updateTimeStampDtos) {
-      const updated = await this.timeStampModel
-        .findOneAndUpdate(
-          { _id: new Types.ObjectId(dto.id) },
-          { ...dto, employee: new Types.ObjectId(dto.employee) },
-          { new: true },
-        )
-        .populate('employee')
-        .exec();
+      try {
+        if (!dto._id) {
+          throw new Error(`Missing _id for update.`);
+        }
 
-      if (!updated) {
-        throw new Error(`TimeStamp with ID ${dto.id} not found`);
+        const employeeId =
+          typeof dto.employee === 'string'
+            ? new Types.ObjectId(dto.employee)
+            : new Types.ObjectId(dto.employee?._id as string); // ✅ Safe type assertion
+
+        const updated = await this.timeStampModel
+          .findOneAndUpdate(
+            { _id: new Types.ObjectId(dto._id) }, // Ensure _id is ObjectId
+            {
+              ...dto,
+              employee: employeeId,
+            },
+            { new: true },
+          )
+          .populate('employee')
+          .exec();
+
+        if (!updated) {
+          throw new Error(`TimeStamp with ID ${dto._id} not found`);
+        }
+
+        updatedTimeStamps.push(updated);
+      } catch (error) {
+        console.error(`Error updating TimeStamp: ${error.message}`);
+        throw new Error(
+          `Error updating TimeStamp with ID ${dto._id}: ${error.message}`,
+        );
       }
-
-      updatedTimeStamps.push(updated);
     }
 
     return updatedTimeStamps;

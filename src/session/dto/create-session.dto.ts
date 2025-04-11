@@ -18,5 +18,6 @@ export class CreateSessionDto {
 
   @IsMongoId()
   user: string;
+
   _id: number;
 }

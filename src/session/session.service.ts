@@ -17,13 +17,17 @@ export class SessionService {
   async create(createSessionDtos: CreateSessionDto[]): Promise<Session[]> {
     const sessions = createSessionDtos.map((dto) => ({
       ...dto,
-      user: new Types.ObjectId(dto.user),
+      user: new Types.ObjectId(dto.user), // Ensure it's converted to ObjectId
     }));
 
     try {
       const newSessions = await this.sessionModel.insertMany(sessions);
+
+      // Extract the inserted IDs correctly
+      const insertedIds = newSessions.map((session) => session._id);
+
       return this.sessionModel
-        .find({ _id: { $in: newSessions.map((t) => t._id) } })
+        .find({ _id: { $in: insertedIds } })
         .lean()
         .exec();
     } catch (error) {
@@ -51,16 +55,33 @@ export class SessionService {
     const updatedSessions: Session[] = [];
 
     for (const dto of updateSessionDtos) {
+      if (!dto._id) {
+        throw new Error(`Session ID is required for update.`);
+      }
+
+      const userId =
+        dto.user === null
+          ? null
+          : typeof dto.user === 'string'
+            ? new Types.ObjectId(dto.user)
+            : new Types.ObjectId(dto.user._id);
+
+      const updateData: any = {
+        ip: dto.ip,
+        device: dto.device,
+        token: dto.token,
+        expiresAt: dto.expiresAt,
+      };
+
+      // Only include user if it's not null
+      if (userId) {
+        updateData.user = userId;
+      }
+
       const updated = await this.sessionModel
         .findOneAndUpdate(
           { _id: new Types.ObjectId(dto._id) },
-          {
-            ip: dto.ip,
-            device: dto.device,
-            token: dto.token,
-            expiresAt: dto.expiresAt,
-            user: new Types.ObjectId(dto.user),
-          },
+          updateData,
           { new: true }, // Return the updated document
         )
         .lean()

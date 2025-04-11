@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 import { Controller, Get, Post, Body, Delete, Put } from '@nestjs/common';
 import { TimeStampService } from './time-stamp.service';
 import { CreateTimeStampDto } from './dto/create-time-stamp.dto';
@@ -42,8 +43,16 @@ export class TimeStampController {
   }
 
   // Delete multiple timestamps
+
   @Delete()
-  async remove(@Body() body: { ids: string[] }): Promise<void> {
-    return this.timeStampService.remove(body.ids);
+  async remove(@Body() body: { ids: string[] }) {
+    try {
+      const { ids } = body;
+      console.log(ids);
+      await this.timeStampService.remove(ids);
+      return { message: 'Time Stamp deleted successfully' };
+    } catch (error) {
+      throw error;
+    }
   }
 }

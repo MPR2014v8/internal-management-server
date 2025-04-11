@@ -61,7 +61,7 @@ export class AuthService {
       }
 
       const token = this.generateResetToken();
-    
+
       await this.sessionService.createResetPasswordSession({
         token,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiration
