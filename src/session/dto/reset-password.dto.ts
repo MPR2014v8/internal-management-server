@@ -1,4 +1,5 @@
 import { IsMongoId, IsNotEmpty } from 'class-validator';
+import { Types } from 'mongoose';
 export class createResetPasswordSessionDto {
   @IsNotEmpty()
   readonly token: string;
@@ -7,7 +8,7 @@ export class createResetPasswordSessionDto {
   readonly expiresAt: Date;
 
   @IsMongoId()
-  user: string;
+  user: Types.ObjectId;
 }
 
 export class CreateSessionDto {}

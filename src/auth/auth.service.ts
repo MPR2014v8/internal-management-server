@@ -14,6 +14,7 @@ import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
 import * as dotenv from 'dotenv';
 import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
+import { Types } from 'mongoose';
 
 dotenv.config(); // Load environment variables
 
@@ -60,16 +61,12 @@ export class AuthService {
       }
 
       const token = this.generateResetToken();
-      const sessionCreated =
-        await this.sessionService.createResetPasswordSession({
-          token,
-          expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiration
-          user: user.toString(),
-        });
-
-      if (!sessionCreated) {
-        throw new Error('Failed to create session for password reset.');
-      }
+    
+      await this.sessionService.createResetPasswordSession({
+        token,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiration
+        user: user._id as Types.ObjectId,
+      });
 
       const resetLink = `http://localhost:3001/logins/reset_password/${token}`;
       const subject = `Hi ${user.name}, reset your password`;
