@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-base-to-string */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/require-await */
@@ -21,7 +23,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly sessionService: SessionService,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   async validateUser(email: string, password: string) {
     const user = await this.userService.findByEmail(email);
@@ -48,7 +50,9 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(email: string): Promise<{ status: number; message: string }> {
+  async forgotPassword(
+    email: string,
+  ): Promise<{ status: number; message: string }> {
     try {
       const user = await this.userService.findByEmail(email);
       if (!user) {
@@ -56,11 +60,12 @@ export class AuthService {
       }
 
       const token = this.generateResetToken();
-      const sessionCreated = await this.sessionService.createResetPasswordSession({
-        token,
-        expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiration
-        user: user.toString(),
-      });
+      const sessionCreated =
+        await this.sessionService.createResetPasswordSession({
+          token,
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiration
+          user: user.toString(),
+        });
 
       if (!sessionCreated) {
         throw new Error('Failed to create session for password reset.');
@@ -71,14 +76,23 @@ export class AuthService {
       const mailTemplate = `<h1>Hello</h1><p>Click <a href="${resetLink}">here</a> to reset your password.</p>`;
       await this.sendMail(email, subject, mailTemplate);
 
-      return { status: 200, message: 'Password reset email sent successfully.' };
+      return {
+        status: 200,
+        message: 'Password reset email sent successfully.',
+      };
     } catch (error) {
       console.error('Error in forgotPassword:', error);
-      return { status: 500, message: 'An error occurred while processing the request.' };
+      return {
+        status: 500,
+        message: 'An error occurred while processing the request.',
+      };
     }
   }
 
-  async resetPassword(password: string, token: string): Promise<{ status: number; message: string }> {
+  async resetPassword(
+    password: string,
+    token: string,
+  ): Promise<{ status: number; message: string }> {
     try {
       const session = await this.sessionService.findByToken(token);
       if (!session || session.expiresAt < new Date()) {
@@ -90,20 +104,28 @@ export class AuthService {
         return { status: 404, message: 'User not found.' };
       }
 
-      user.password = password
+      user.password = password;
       await user.save();
-      await this.sessionService.remove(session._id as string);
+      await this.sessionService.remove([session._id as string]);
 
       return { status: 200, message: 'Password reset successfully.' };
     } catch (error) {
       console.error('Error in resetPassword:', error);
-      return { status: 500, message: 'An error occurred while processing the request.' };
+      return {
+        status: 500,
+        message: 'An error occurred while processing the request.',
+      };
     }
   }
 
   private generateResetToken(): string {
-    const randomString = require('crypto').randomBytes(32).toString('hex') + new Date().toISOString();
-    return require('crypto').createHash('sha256').update(randomString).digest('hex');
+    const randomString =
+      require('crypto').randomBytes(32).toString('hex') +
+      new Date().toISOString();
+    return require('crypto')
+      .createHash('sha256')
+      .update(randomString)
+      .digest('hex');
   }
 
   async sendMail(to: string, subject: string, html: string): Promise<void> {

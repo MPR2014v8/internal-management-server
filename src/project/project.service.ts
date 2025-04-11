@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -43,7 +42,18 @@ export class ProjectService {
     return this.projectModel.find().lean().exec();
   }
 
-  // Get multiple projects by a list of IDs
+  // Get a single project by ID// Service - findOne method
+  async findOne(id: string): Promise<Project> {
+    const project = await this.projectModel.findById(id).lean().exec();
+
+    if (!project) {
+      throw new Error(`Project with ID ${id} not found`);
+    }
+
+    return project;
+  }
+
+  // Get multiple projects by IDs
   async findManyByIds(ids: string[]): Promise<Project[]> {
     const objectIds = ids.map((id) => new Types.ObjectId(id));
     return this.projectModel

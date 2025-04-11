@@ -11,6 +11,8 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  Patch,
+  Delete,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/register.dto';

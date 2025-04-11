@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Delete,
-  Put,
-} from '@nestjs/common';
+import { Controller, Post, Body, Put, Get, Delete } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { Project } from './schema/project.schema';
@@ -15,36 +7,43 @@ import { Project } from './schema/project.schema';
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
-  // Create a new project
-  @Post()
-  async create(@Body() createProjectDto: CreateProjectDto): Promise<Project> {
-    return this.projectService.create(createProjectDto);
+  // Create multiple projects
+  @Post('/create')
+  async create(
+    @Body() createProjectDtos: CreateProjectDto[],
+  ): Promise<Project[]> {
+    return this.projectService.create(createProjectDtos);
   }
 
   // Get all projects
-  @Get()
+  @Get('/all')
   async findAll(): Promise<Project[]> {
     return this.projectService.findAll();
   }
 
   // Get a single project by ID
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Project> {
-    return this.projectService.findOne(id);
+  @Post('/getOne')
+  async findOne(@Body() body: { id: string }): Promise<Project> {
+    return this.projectService.findOne(body.id);
   }
 
-  // Update a project by ID
-  @Put(':id')
+  // Get multiple projects by IDs
+  @Post('/findMany')
+  async findMany(@Body() body: { ids: string[] }): Promise<Project[]> {
+    return this.projectService.findManyByIds(body.ids);
+  }
+
+  // Update multiple projects
+  @Put('/update')
   async update(
-    @Param('id') id: string,
-    @Body() updateProjectDto: CreateProjectDto,
-  ): Promise<Project> {
-    return this.projectService.update(id, updateProjectDto);
+    @Body() updateProjectDtos: CreateProjectDto[],
+  ): Promise<Project[]> {
+    return this.projectService.update(updateProjectDtos);
   }
 
-  // Delete a project by ID
-  @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.projectService.remove(id);
+  // Delete multiple projects
+  @Delete('/delete')
+  async remove(@Body() body: { ids: string[] }): Promise<void> {
+    return this.projectService.remove(body.ids);
   }
 }
