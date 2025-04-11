@@ -4,14 +4,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { Injectable } from '@nestjs/common';
+import { HttpCode, Injectable } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { SessionService } from 'src/session/session.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
 import * as dotenv from 'dotenv';
-import mongoose from 'mongoose';
+import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 
 dotenv.config(); // Load environment variables
 
@@ -21,7 +21,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly sessionService: SessionService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async validateUser(email: string, password: string) {
     const user = await this.userService.findByEmail(email);
@@ -48,91 +48,82 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(email: string) {
-    // ฝากดูหน่อยนะ
-    // try {
-    //   const existUser = await this.userService.findByEmail(email);
-    //   if (!existUser) {
-    //     throw new Error('User not found');
-    //   }
-    //   const randomString =
-    //     require('crypto').randomBytes(32).toString('hex') +
-    //     new Date().toISOString();
-    //   const Token = require('crypto')
-    //     .createHash('sha256')
-    //     .update(randomString)
-    //     .digest('hex');
-    //   const resCreateSession =
-    //     await this.sessionService.createResetPasswordSession({
-    //       token: Token,
-    //       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
-    //       userId: existUser._id,
-    //     });
-    //   if (!resCreateSession) {
-    //     throw new Error('Failed to create session for password reset');
-    //   }
-    //   console.log('resCreateSession :: ', resCreateSession);
-    //   const from: string = 'testing@resetpassword.com';
-    //   const to: string = email;
-    //   const subject: string = `Hi ${existUser.name}, this is a link to reset your password`;
-    //   const mailTemplate: string = `<h1>Hello</h1><p>This is a link for reset password http://localhost:3001/logins/reset_password/${Token}</p>`;
-    //   this.sendMail(from, to, subject, mailTemplate);
-    // } catch (error) {
-    //   console.error('Error in forgotPassword:', error);
-    //   throw new Error('Failed to send password reset email');
-    // }
-  }
-
-  async resetPassword(password: string, token: string) {
+  async forgotPassword(email: string): Promise<{ status: number; message: string }> {
     try {
-      const session = await this.sessionService.findByToken(token);
-      if (!session) throw new Error('session not found');
+      const user = await this.userService.findByEmail(email);
+      if (!user) {
+        return { status: 404, message: 'User not found.' };
+      }
 
-      const user = await this.userService.findById(
-        session.user as unknown as mongoose.Schema.Types.ObjectId,
-      );
-      if (!user) throw new Error('User not found');
-
-      if (session.expiresAt < new Date())
-        throw new Error('Session has expired');
-
-      user.set('password', password);
-      await user.save().then(async () => {
-        this.sessionService.remove(session._id as string);
+      const token = this.generateResetToken();
+      const sessionCreated = await this.sessionService.createResetPasswordSession({
+        token,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiration
+        user: user.toString(),
       });
-      console.log('Password reset successfully for user:', user.email);
+
+      if (!sessionCreated) {
+        throw new Error('Failed to create session for password reset.');
+      }
+
+      const resetLink = `http://localhost:3001/logins/reset_password/${token}`;
+      const subject = `Hi ${user.name}, reset your password`;
+      const mailTemplate = `<h1>Hello</h1><p>Click <a href="${resetLink}">here</a> to reset your password.</p>`;
+      await this.sendMail(email, subject, mailTemplate);
+
+      return { status: 200, message: 'Password reset email sent successfully.' };
     } catch (error) {
-      console.error('Error in resetPassword:', error);
-      throw new Error('Failed to reset password');
+      console.error('Error in forgotPassword:', error);
+      return { status: 500, message: 'An error occurred while processing the request.' };
     }
   }
 
-  async sendMail(from: string, to: string, subject: string, html: string) {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: process.env.MAIL_HOST,
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.MAIL_USERNAME,
-        pass: process.env.MAIL_PASSWORD,
-      },
-    });
-
-    const mailOptions = {
-      from: from,
-      to: to,
-      subject: subject,
-      html: html,
-    };
-
-    console.log(`Sending mail to - ${to}`);
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log('Email sent: ' + info.response);
+  async resetPassword(password: string, token: string): Promise<{ status: number; message: string }> {
+    try {
+      const session = await this.sessionService.findByToken(token);
+      if (!session || session.expiresAt < new Date()) {
+        return { status: 401, message: 'Session has expired or is invalid.' };
       }
-    });
+
+      const user = await this.userService.findById(session.user.toString());
+      if (!user) {
+        return { status: 404, message: 'User not found.' };
+      }
+
+      user.password = password
+      await user.save();
+      await this.sessionService.remove(session._id as string);
+
+      return { status: 200, message: 'Password reset successfully.' };
+    } catch (error) {
+      console.error('Error in resetPassword:', error);
+      return { status: 500, message: 'An error occurred while processing the request.' };
+    }
+  }
+
+  private generateResetToken(): string {
+    const randomString = require('crypto').randomBytes(32).toString('hex') + new Date().toISOString();
+    return require('crypto').createHash('sha256').update(randomString).digest('hex');
+  }
+
+  async sendMail(to: string, subject: string, html: string): Promise<void> {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        host: process.env.MAIL_HOST,
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.MAIL_USERNAME,
+          pass: process.env.MAIL_PASSWORD,
+        },
+      });
+
+      const mailOptions = { to, subject, html };
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent successfully to:', to);
+    } catch (error) {
+      console.error('Error in sendMail:', error);
+    }
   }
 }
