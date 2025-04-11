@@ -1,4 +1,5 @@
 import { IsString, IsOptional, IsDate, IsMongoId } from 'class-validator';
+import mongoose from 'mongoose';
 
 export class CreateSessionDto {
   @IsOptional()

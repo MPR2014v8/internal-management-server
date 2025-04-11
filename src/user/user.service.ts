@@ -27,7 +27,7 @@ export class UserService {
   }
 
   async findById(
-    id: mongoose.Schema.Types.ObjectId,
+    id: string,
   ): Promise<UserDocument | null> {
     console.log('session : ', id);
     const result = await this.userModel.findOne({ _id: id }).exec();

@@ -7,9 +7,12 @@ import {
   Request,
   UseGuards,
   BadRequestException,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from 'src/auth/local-auth.guard';
+import { Response } from 'express';
+
 
 @Controller('auth')
 export class AuthController {
@@ -30,10 +33,10 @@ export class AuthController {
   }
 
   @Post('/forgot-password')
-  async forgotPassword(@Request() req) {
+  async forgotPassword(@Request() req, @Res() res:Response) {
     try {
-      console.log(req.body.email);
-      return this.authService.forgotPassword(req.body.email);
+      const result = await this.authService.forgotPassword(req.body.email);
+      res.status(result.status).send(result)
     } catch (error) {
       console.log('Error forgotPassword :', error);
       throw new BadRequestException();
@@ -41,11 +44,11 @@ export class AuthController {
   }
 
   @Post('/reset-password')
-  async resetPassword(@Request() req) {
+  async resetPassword(@Request() req, @Res() res:Response) {
     try {
-      console.log(req.body);
       const { password, token } = req.body;
-      return this.authService.resetPassword(password, token);
+      const result = await this.authService.resetPassword(password, token);
+      res.status(result.status).send(result)
     } catch (error) {
       console.log('Error resetPassword :', error);
       throw new BadRequestException();

@@ -40,7 +40,7 @@ export class SessionService {
     }
   }
 
-  async findByToken(token: string) {
+  async findByToken(token: string): Promise<SessionDocument | null> {
     try {
       return this.sessionModel.findOne({ token: token }).exec();
     } catch (error) {
