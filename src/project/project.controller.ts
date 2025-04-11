@@ -16,13 +16,13 @@ export class ProjectController {
   }
 
   // Get all projects
-  @Get('/all')
+  @Get('/findAll')
   async findAll(): Promise<Project[]> {
     return this.projectService.findAll();
   }
 
   // Get a single project by ID
-  @Post('/getOne')
+  @Post('/findOne')
   async findOne(@Body() body: { id: string }): Promise<Project> {
     return this.projectService.findOne(body.id);
   }

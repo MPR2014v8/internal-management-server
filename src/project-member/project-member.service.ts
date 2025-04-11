@@ -41,6 +41,14 @@ export class ProjectMemberService {
     return this.projectMemberModel.find().lean().exec();
   }
 
+  async findOne(id: string): Promise<ProjectMember> {
+    const projectMember = await this.projectMemberModel.findOne({ _id: id }).lean().exec();
+    if (!projectMember) {
+      throw new Error(`Project Member with ID ${id} not found`);
+    }
+    return projectMember;
+  }
+
   // Get multiple project members by a list of IDs
   async findManyByIds(ids: string[]): Promise<ProjectMember[]> {
     const objectIds = ids.map((id) => new Types.ObjectId(id));

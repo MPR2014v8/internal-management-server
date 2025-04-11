@@ -8,7 +8,7 @@ export class ProjectMemberController {
   constructor(private readonly projectMemberService: ProjectMemberService) {}
 
   // Create multiple project members
-  @Post()
+  @Post('/create')
   async create(
     @Body() createProjectMemberDtos: CreateProjectMemberDto[],
   ): Promise<ProjectMember[]> {
@@ -16,19 +16,24 @@ export class ProjectMemberController {
   }
 
   // Get all project members
-  @Get()
+  @Get('/findAll')
   async findAll(): Promise<ProjectMember[]> {
     return this.projectMemberService.findAll();
   }
 
+  @Post('/findOne')
+  async findOne(@Body() body:{id :string}): Promise<ProjectMember> {
+    return this.projectMemberService.findOne(body.id);
+  }
+
   // Get multiple project members by a list of IDs
-  @Post('list') // Using POST to receive an array in the body
+  @Post('/findMany') // Using POST to receive an array in the body
   async findManyByIds(@Body() ids: string[]): Promise<ProjectMember[]> {
     return this.projectMemberService.findManyByIds(ids);
   }
 
   // Update multiple project members
-  @Put()
+  @Put('/update')
   async update(
     @Body() updateProjectMemberDtos: CreateProjectMemberDto[],
   ): Promise<ProjectMember[]> {
@@ -36,7 +41,7 @@ export class ProjectMemberController {
   }
 
   // Delete multiple project members
-  @Delete()
+  @Delete('/delete')
   async remove(@Body() ids: string[]): Promise<void> {
     return this.projectMemberService.remove(ids);
   }

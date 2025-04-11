@@ -10,7 +10,7 @@ export class ProjectTimeSheetController {
   ) {}
 
   // Create multiple project timesheets
-  @Post()
+  @Post('/create')
   async create(
     @Body() createTimeSheetDtos: CreateProjectTimeSheetDto[],
   ): Promise<ProjectTimeSheet[]> {
@@ -18,25 +18,25 @@ export class ProjectTimeSheetController {
   }
 
   // Get all project timesheets
-  @Get()
+  @Get('/findAll')
   async findAll(): Promise<ProjectTimeSheet[]> {
     return this.projectTimeSheetService.findAll();
   }
 
-  @Post('/find')
+  @Post('/findOnd')
   async find(@Body() req): Promise<ProjectTimeSheet>{
-    const {id}=req;
+    const { id } = req;
     return this.projectTimeSheetService.find(id)
   }
 
   // Get multiple project timesheets by a list of IDs
-  @Post('list') // Using POST to receive an array in the body
+  @Post('/findMany') // Using POST to receive an array in the body
   async findManyByIds(@Body() ids: string[]): Promise<ProjectTimeSheet[]> {
     return this.projectTimeSheetService.findManyByIds(ids);
   }
 
   // Update multiple project timesheets
-  @Put()
+  @Put('/update')
   async update(
     @Body() updateTimeSheetDtos: CreateProjectTimeSheetDto[],
   ): Promise<ProjectTimeSheet[]> {
@@ -44,7 +44,7 @@ export class ProjectTimeSheetController {
   }
 
   // Delete multiple project timesheets
-  @Delete()
+  @Delete('/delete')
   async remove(@Body() ids: string[]): Promise<void> {
     return this.projectTimeSheetService.remove(ids);
   }
