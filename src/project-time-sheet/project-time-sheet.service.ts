@@ -40,6 +40,15 @@ export class ProjectTimeSheetService {
     return this.timeSheetModel.find().lean().exec();
   }
 
+  // Get time sheet by Id
+  async find(id:string):Promise<ProjectTimeSheet>{
+    const timeSheet = await this.timeSheetModel.findOne({ _id: id }).lean().exec();
+    if (!timeSheet) {
+      throw new Error(`Project timesheet with ID ${id} not found`);
+    }
+    return timeSheet;
+  }
+
   // Get project timesheets by a list of IDs
   async findManyByIds(ids: string[]): Promise<ProjectTimeSheet[]> {
     const objectIds = ids.map((id) => new Types.ObjectId(id));

@@ -23,7 +23,7 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return this.userModel.find().populate('sessions').exec();
+    return this.userModel.find().select("-password").exec();
   }
 
   async findById(

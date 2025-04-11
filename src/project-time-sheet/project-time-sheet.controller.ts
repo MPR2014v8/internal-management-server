@@ -23,6 +23,12 @@ export class ProjectTimeSheetController {
     return this.projectTimeSheetService.findAll();
   }
 
+  @Post('/find')
+  async find(@Body() req): Promise<ProjectTimeSheet>{
+    const {id}=req;
+    return this.projectTimeSheetService.find(id)
+  }
+
   // Get multiple project timesheets by a list of IDs
   @Post('list') // Using POST to receive an array in the body
   async findManyByIds(@Body() ids: string[]): Promise<ProjectTimeSheet[]> {
