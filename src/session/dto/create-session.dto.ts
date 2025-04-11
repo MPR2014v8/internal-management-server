@@ -1,5 +1,4 @@
 import { IsString, IsOptional, IsDate, IsMongoId } from 'class-validator';
-import mongoose from 'mongoose';
 
 export class CreateSessionDto {
   @IsOptional()
@@ -17,7 +16,6 @@ export class CreateSessionDto {
   expiresAt: Date;
 
   @IsMongoId()
-  user: string;
-
+  user: string | { _id: string }; // Change here: user can be a string or an object with an _id.
   _id: number;
 }
