@@ -13,10 +13,13 @@ import {
   BadRequestException,
   Patch,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/register.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { UserDocument } from './schema/user.schema';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -40,6 +43,27 @@ export class UserController {
       console.log('Error findAll :', error);
       throw new BadRequestException();
     }
+  }
+
+  @Post('/findOne')
+  async findOne(@Body() body: { id: string }): Promise<UserDocument> {
+    const user = await this.userService.findById(body.id);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return user;
+  }
+
+  @Post('/findMany')
+    async findMany(@Body() body: { ids: string[] }): Promise<UserDocument[]> {
+      return this.userService.findByIds(body.ids);
+  }
+
+  @Put('/update')
+  async update(
+    @Body() updateProjectDtos: UpdateUserDto[],
+  ): Promise<UserDocument[]> {
+    return this.userService.update(updateProjectDtos);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -3,8 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/register.dto';
 import { User, UserDocument } from './schema/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { SessionDocument } from 'src/session/schema/session.schema';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -16,13 +17,11 @@ export class UserService {
   }
 
   async findByEmail(email: string): Promise<UserDocument | null> {
-    console.log('email : ', email);
     const result = await this.userModel.findOne({ email }).exec();
-    console.log('result : ', result);
     return result;
   }
 
-  async getAllUsers(): Promise<User[]> {
+  async getAllUsers(): Promise<UserDocument[]> {
     return this.userModel.find().exec();
   }
 
@@ -30,6 +29,42 @@ export class UserService {
     console.log('session : ', id);
     const result = await this.userModel.findOne({ _id: id }).exec();
     return result;
+  }
+
+  async findByIds(ids:string[]): Promise<UserDocument[]>{
+      const objectIds = ids.map((id) => new Types.ObjectId(id));
+      return this.userModel
+        .find({ _id: { $in: objectIds } })
+        .lean()
+        .exec();
+  }
+
+  // ยังไม่เสร็จ
+  async update(updateUserDtos: UpdateUserDto[]): Promise<UserDocument[]> {
+    const updatedUsers: UserDocument[] = [];
+
+    for (const dto of updateUserDtos) {
+      const updated = await this.userModel
+        .findOneAndUpdate(
+          { _id: new Types.ObjectId(dto._id) },
+          {
+            email: dto.email,
+            name: dto.name,
+            isActive: dto.isActive,
+          },
+          { new: true }, // Return the updated document
+        )
+        .lean()
+        .exec();
+
+      if (!updated) {
+        throw new Error(`User with ID ${dto._id} not found`);
+      }
+
+      updatedUsers.push(updated);
+    }
+
+    return updatedUsers;
   }
 
   async removeSession(userId: string, sessionId: string) {

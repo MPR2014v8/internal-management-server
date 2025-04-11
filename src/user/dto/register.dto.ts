@@ -4,7 +4,9 @@ import {
   MaxLength,
   MinLength,
   IsOptional,
+  IsMongoId,
 } from 'class-validator';
+import { Types } from 'mongoose';
 
 export class CreateUserDto {
   @IsEmail()
