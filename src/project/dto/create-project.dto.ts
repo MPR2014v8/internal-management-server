@@ -24,4 +24,6 @@ export class CreateProjectDto {
 
   @IsMongoId()
   developerLead: string; // Foreign key to User schema
+
+  _id: number;
 }

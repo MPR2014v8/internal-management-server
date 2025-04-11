@@ -6,4 +6,5 @@ export class CreateUserPermissionDto {
 
   @IsMongoId()
   user: string;
+  _id: number;
 }

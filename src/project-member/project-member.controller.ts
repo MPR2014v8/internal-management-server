@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Delete,
-  Put,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Put } from '@nestjs/common';
 import { ProjectMemberService } from './project-member.service';
 import { CreateProjectMemberDto } from './dto/create-project-member.dto';
 import { ProjectMember } from './schema/project-member.schema';
@@ -15,12 +7,12 @@ import { ProjectMember } from './schema/project-member.schema';
 export class ProjectMemberController {
   constructor(private readonly projectMemberService: ProjectMemberService) {}
 
-  // Create a new project member
+  // Create multiple project members
   @Post()
   async create(
-    @Body() createProjectMemberDto: CreateProjectMemberDto,
-  ): Promise<ProjectMember> {
-    return this.projectMemberService.create(createProjectMemberDto);
+    @Body() createProjectMemberDtos: CreateProjectMemberDto[],
+  ): Promise<ProjectMember[]> {
+    return this.projectMemberService.create(createProjectMemberDtos);
   }
 
   // Get all project members
@@ -29,24 +21,23 @@ export class ProjectMemberController {
     return this.projectMemberService.findAll();
   }
 
-  // Get a single project member by ID
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<ProjectMember> {
-    return this.projectMemberService.findOne(id);
+  // Get multiple project members by a list of IDs
+  @Post('list') // Using POST to receive an array in the body
+  async findManyByIds(@Body() ids: string[]): Promise<ProjectMember[]> {
+    return this.projectMemberService.findManyByIds(ids);
   }
 
-  // Update an existing project member
-  @Put(':id')
+  // Update multiple project members
+  @Put()
   async update(
-    @Param('id') id: string,
-    @Body() updateProjectMemberDto: CreateProjectMemberDto,
-  ): Promise<ProjectMember> {
-    return this.projectMemberService.update(id, updateProjectMemberDto);
+    @Body() updateProjectMemberDtos: CreateProjectMemberDto[],
+  ): Promise<ProjectMember[]> {
+    return this.projectMemberService.update(updateProjectMemberDtos);
   }
 
-  // Delete a project member by ID
-  @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.projectMemberService.remove(id);
+  // Delete multiple project members
+  @Delete()
+  async remove(@Body() ids: string[]): Promise<void> {
+    return this.projectMemberService.remove(ids);
   }
 }

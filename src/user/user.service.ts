@@ -40,4 +40,25 @@ export class UserService {
       .exec();
     return `This action removes a #${sessionId} session`;
   }
+
+  // Deactivate user by setting 'isActive' to 'false'
+  async deactivateUser(userId: string): Promise<User> {
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { isActive: 'false' }, // Setting isActive to 'false'
+      { new: true }, // Returns the updated user
+    );
+
+    if (!updatedUser) {
+      throw new Error('User not found');
+    }
+
+    return updatedUser;
+  }
+
+  // Remove user permanently from the database
+  async removeUser(userId: string): Promise<{ message: string }> {
+    await this.userModel.findByIdAndDelete(userId);
+    return { message: 'User removed successfully' };
+  }
 }

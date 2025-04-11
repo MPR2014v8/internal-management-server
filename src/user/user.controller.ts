@@ -59,4 +59,28 @@ export class UserController {
       throw new BadRequestException();
     }
   }
+
+  // Deactivate user
+  @Patch('/deactivate')
+  async deactivateUser(@Body() body: { userId: string }) {
+    try {
+      const { userId } = body;
+      return await this.userService.deactivateUser(userId);
+    } catch (error) {
+      console.error('Error deactivating user:', error);
+      throw new BadRequestException('Failed to deactivate user');
+    }
+  }
+
+  // Remove user
+  @Delete('/remove')
+  async removeUser(@Body() body: { userId: string }) {
+    try {
+      const { userId } = body;
+      return await this.userService.removeUser(userId);
+    } catch (error) {
+      console.error('Error removing user:', error);
+      throw new BadRequestException('Failed to remove user');
+    }
+  }
 }

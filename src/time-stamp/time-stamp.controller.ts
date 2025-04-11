@@ -1,54 +1,49 @@
-// src/time-stamp/time-stamp.controller.ts
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Put,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Put } from '@nestjs/common';
 import { TimeStampService } from './time-stamp.service';
 import { CreateTimeStampDto } from './dto/create-time-stamp.dto';
-import { UpdateTimeStampDto } from './dto/update-time-stamp.dto';
 import { TimeStamp } from './schema/time-stamp.schema';
 
 @Controller('time-stamps')
 export class TimeStampController {
   constructor(private readonly timeStampService: TimeStampService) {}
 
-  // Create a new TimeStamp
+  // Create multiple timestamps
   @Post()
   async create(
-    @Body() createTimeStampDto: CreateTimeStampDto,
-  ): Promise<TimeStamp> {
-    return this.timeStampService.create(createTimeStampDto);
+    @Body() createTimeStampDtos: CreateTimeStampDto[],
+  ): Promise<TimeStamp[]> {
+    return this.timeStampService.create(createTimeStampDtos);
   }
 
-  // Get all TimeStamps
+  // Get all timestamps
   @Get()
   async findAll(): Promise<TimeStamp[]> {
     return this.timeStampService.findAll();
   }
 
-  // Get a specific TimeStamp by ID
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<TimeStamp> {
-    return this.timeStampService.findOne(id);
+  // Get a single timestamp by ID
+  @Post('find-one')
+  async findOne(@Body() body: { id: string }): Promise<TimeStamp> {
+    return this.timeStampService.findOne(body.id);
   }
 
-  // Update an existing TimeStamp
-  @Put(':id')
+  // Get multiple timestamps by a list of IDs
+  @Post('find-many')
+  async findManyByIds(@Body() body: { ids: string[] }): Promise<TimeStamp[]> {
+    return this.timeStampService.findManyByIds(body.ids);
+  }
+
+  // Update multiple timestamps
+  @Put()
   async update(
-    @Param('id') id: string,
-    @Body() updateTimeStampDto: UpdateTimeStampDto,
-  ): Promise<TimeStamp> {
-    return this.timeStampService.update(id, updateTimeStampDto);
+    @Body() updateTimeStampDtos: CreateTimeStampDto[],
+  ): Promise<TimeStamp[]> {
+    return this.timeStampService.update(updateTimeStampDtos);
   }
 
-  // Delete a TimeStamp
-  @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.timeStampService.remove(id);
+  // Delete multiple timestamps
+  @Delete()
+  async remove(@Body() body: { ids: string[] }): Promise<void> {
+    return this.timeStampService.remove(body.ids);
   }
 }

@@ -33,4 +33,5 @@ export class CreateTimeStampDto {
 
   @IsMongoId()
   employee: string; // Required field
+  id: number;
 }

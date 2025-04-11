@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Project, ProjectDocument } from './schema/project.schema';
 import { CreateProjectDto } from './dto/create-project.dto';
 
@@ -11,45 +12,94 @@ export class ProjectService {
     private readonly projectModel: Model<ProjectDocument>,
   ) {}
 
-  // Create a new project
-  async create(createProjectDto: CreateProjectDto): Promise<Project> {
-    const createdProject = new this.projectModel(createProjectDto);
-    return await createdProject.save();
+  // Create multiple projects
+  async create(createProjectDtos: CreateProjectDto[]): Promise<Project[]> {
+    const projects = createProjectDtos.map((dto) => ({
+      ...dto,
+      projectManager: dto.projectManager
+        ? new Types.ObjectId(dto.projectManager)
+        : null,
+      businessanalystLead: dto.businessanalystLead
+        ? new Types.ObjectId(dto.businessanalystLead)
+        : null,
+      developerLead: dto.developerLead
+        ? new Types.ObjectId(dto.developerLead)
+        : null,
+    }));
+
+    try {
+      const newProjects = await this.projectModel.insertMany(projects);
+      return this.projectModel
+        .find({ _id: { $in: newProjects.map((t) => t._id) } })
+        .lean()
+        .exec();
+    } catch (error) {
+      throw new Error(`Error creating projects: ${error.message}`);
+    }
   }
 
   // Get all projects
   async findAll(): Promise<Project[]> {
-    return this.projectModel.find().exec();
+    return this.projectModel.find().lean().exec();
   }
 
-  // Get a single project by ID
-  async findOne(id: string): Promise<Project> {
-    const project = await this.projectModel.findById(id).exec();
-    if (!project) {
-      throw new NotFoundException(`Project with id ${id} not found`);
-    }
-    return project;
-  }
-
-  // Update an existing project
-  async update(
-    id: string,
-    updateProjectDto: CreateProjectDto,
-  ): Promise<Project> {
-    const updatedProject = await this.projectModel
-      .findByIdAndUpdate(id, updateProjectDto, { new: true })
+  // Get multiple projects by a list of IDs
+  async findManyByIds(ids: string[]): Promise<Project[]> {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    return this.projectModel
+      .find({ _id: { $in: objectIds } })
+      .lean()
       .exec();
-    if (!updatedProject) {
-      throw new NotFoundException(`Project with id ${id} not found`);
-    }
-    return updatedProject;
   }
 
-  // Delete a project
-  async remove(id: string): Promise<void> {
-    const result = await this.projectModel.deleteOne({ _id: id }).exec();
+  // Update multiple projects
+  async update(updateProjectDtos: CreateProjectDto[]): Promise<Project[]> {
+    const updatedProjects: Project[] = [];
+
+    for (const dto of updateProjectDtos) {
+      const updated = await this.projectModel
+        .findOneAndUpdate(
+          { _id: new Types.ObjectId(dto._id) },
+          {
+            name: dto.name,
+            type: dto.type,
+            status: dto.status,
+            startDate: dto.startDate,
+            dueDate: dto.dueDate,
+            projectManager: dto.projectManager
+              ? new Types.ObjectId(dto.projectManager)
+              : null,
+            businessanalystLead: dto.businessanalystLead
+              ? new Types.ObjectId(dto.businessanalystLead)
+              : null,
+            developerLead: dto.developerLead
+              ? new Types.ObjectId(dto.developerLead)
+              : null,
+          },
+          { new: true }, // Return the updated document
+        )
+        .lean()
+        .exec();
+
+      if (!updated) {
+        throw new Error(`Project with ID ${dto._id} not found`);
+      }
+
+      updatedProjects.push(updated);
+    }
+
+    return updatedProjects;
+  }
+
+  // Delete multiple projects by IDs
+  async remove(ids: string[]): Promise<void> {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    const result = await this.projectModel
+      .deleteMany({ _id: { $in: objectIds } })
+      .exec();
+
     if (result.deletedCount === 0) {
-      throw new NotFoundException(`Project with id ${id} not found`);
+      throw new Error('No projects were deleted');
     }
   }
 }

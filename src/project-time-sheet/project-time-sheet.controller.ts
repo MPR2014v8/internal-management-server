@@ -1,54 +1,45 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Delete,
-  Put,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Put } from '@nestjs/common';
 import { ProjectTimeSheetService } from './project-time-sheet.service';
 import { CreateProjectTimeSheetDto } from './dto/create-project-time-sheet.dto';
 import { ProjectTimeSheet } from './schema/project-time-sheet.schema';
 
-@Controller('project-time-sheets')
+@Controller('project-timesheets')
 export class ProjectTimeSheetController {
   constructor(
     private readonly projectTimeSheetService: ProjectTimeSheetService,
   ) {}
 
-  // Create a new project time sheet entry
+  // Create multiple project timesheets
   @Post()
   async create(
-    @Body() createProjectTimeSheetDto: CreateProjectTimeSheetDto,
-  ): Promise<ProjectTimeSheet> {
-    return this.projectTimeSheetService.create(createProjectTimeSheetDto);
+    @Body() createTimeSheetDtos: CreateProjectTimeSheetDto[],
+  ): Promise<ProjectTimeSheet[]> {
+    return this.projectTimeSheetService.create(createTimeSheetDtos);
   }
 
-  // Get all project time sheets
+  // Get all project timesheets
   @Get()
   async findAll(): Promise<ProjectTimeSheet[]> {
     return this.projectTimeSheetService.findAll();
   }
 
-  // Get a single project time sheet by ID
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<ProjectTimeSheet> {
-    return this.projectTimeSheetService.findOne(id);
+  // Get multiple project timesheets by a list of IDs
+  @Post('list') // Using POST to receive an array in the body
+  async findManyByIds(@Body() ids: string[]): Promise<ProjectTimeSheet[]> {
+    return this.projectTimeSheetService.findManyByIds(ids);
   }
 
-  // Update an existing project time sheet
-  @Put(':id')
+  // Update multiple project timesheets
+  @Put()
   async update(
-    @Param('id') id: string,
-    @Body() updateProjectTimeSheetDto: CreateProjectTimeSheetDto,
-  ): Promise<ProjectTimeSheet> {
-    return this.projectTimeSheetService.update(id, updateProjectTimeSheetDto);
+    @Body() updateTimeSheetDtos: CreateProjectTimeSheetDto[],
+  ): Promise<ProjectTimeSheet[]> {
+    return this.projectTimeSheetService.update(updateTimeSheetDtos);
   }
 
-  // Delete a project time sheet by ID
-  @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.projectTimeSheetService.remove(id);
+  // Delete multiple project timesheets
+  @Delete()
+  async remove(@Body() ids: string[]): Promise<void> {
+    return this.projectTimeSheetService.remove(ids);
   }
 }

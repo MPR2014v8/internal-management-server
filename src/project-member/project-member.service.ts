@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   ProjectMember,
   ProjectMemberDocument,
@@ -14,49 +14,84 @@ export class ProjectMemberService {
     private readonly projectMemberModel: Model<ProjectMemberDocument>,
   ) {}
 
-  // Create a new project member
+  // Create multiple project members
   async create(
-    createProjectMemberDto: CreateProjectMemberDto,
-  ): Promise<ProjectMember> {
-    const createdProjectMember = new this.projectMemberModel(
-      createProjectMemberDto,
-    );
-    return await createdProjectMember.save();
+    createProjectMemberDtos: CreateProjectMemberDto[],
+  ): Promise<ProjectMember[]> {
+    const projectMembers = createProjectMemberDtos.map((dto) => ({
+      ...dto,
+      user: new Types.ObjectId(dto.user),
+      project: new Types.ObjectId(dto.project),
+    }));
+
+    try {
+      const newProjectMembers =
+        await this.projectMemberModel.insertMany(projectMembers);
+      return this.projectMemberModel
+        .find({ _id: { $in: newProjectMembers.map((t) => t._id) } })
+        .lean()
+        .exec();
+    } catch (error) {
+      throw new Error(`Error creating project members: ${error.message}`);
+    }
   }
 
-  // Find all project members
+  // Get all project members
   async findAll(): Promise<ProjectMember[]> {
-    return this.projectMemberModel.find().exec();
+    return this.projectMemberModel.find().lean().exec();
   }
 
-  // Find a single project member by ID
-  async findOne(id: string): Promise<ProjectMember> {
-    const projectMember = await this.projectMemberModel.findById(id).exec();
-    if (!projectMember) {
-      throw new NotFoundException(`ProjectMember with id ${id} not found`);
-    }
-    return projectMember;
-  }
-
-  // Update an existing project member
-  async update(
-    id: string,
-    updateProjectMemberDto: CreateProjectMemberDto,
-  ): Promise<ProjectMember> {
-    const updatedProjectMember = await this.projectMemberModel
-      .findByIdAndUpdate(id, updateProjectMemberDto, { new: true })
+  // Get multiple project members by a list of IDs
+  async findManyByIds(ids: string[]): Promise<ProjectMember[]> {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    return this.projectMemberModel
+      .find({ _id: { $in: objectIds } })
+      .lean()
       .exec();
-    if (!updatedProjectMember) {
-      throw new NotFoundException(`ProjectMember with id ${id} not found`);
-    }
-    return updatedProjectMember;
   }
 
-  // Delete a project member
-  async remove(id: string): Promise<void> {
-    const result = await this.projectMemberModel.deleteOne({ _id: id }).exec();
+  // Update multiple project members
+  async update(
+    updateProjectMemberDtos: CreateProjectMemberDto[],
+  ): Promise<ProjectMember[]> {
+    const updatedProjectMembers: ProjectMember[] = [];
+
+    for (const dto of updateProjectMemberDtos) {
+      const updated = await this.projectMemberModel
+        .findOneAndUpdate(
+          {
+            user: new Types.ObjectId(dto.user),
+            project: new Types.ObjectId(dto.project),
+          },
+          {
+            role: dto.role,
+          },
+          { new: true }, // Return the updated document
+        )
+        .lean()
+        .exec();
+
+      if (!updated) {
+        throw new Error(
+          `Project member with user ${dto.user} and project ${dto.project} not found`,
+        );
+      }
+
+      updatedProjectMembers.push(updated);
+    }
+
+    return updatedProjectMembers;
+  }
+
+  // Delete multiple project members by IDs
+  async remove(ids: string[]): Promise<void> {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    const result = await this.projectMemberModel
+      .deleteMany({ _id: { $in: objectIds } })
+      .exec();
+
     if (result.deletedCount === 0) {
-      throw new NotFoundException(`ProjectMember with id ${id} not found`);
+      throw new Error('No project members were deleted');
     }
   }
 }

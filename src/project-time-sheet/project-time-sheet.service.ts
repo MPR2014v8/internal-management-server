@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   ProjectTimeSheet,
   ProjectTimeSheetDocument,
@@ -11,56 +11,88 @@ import { CreateProjectTimeSheetDto } from './dto/create-project-time-sheet.dto';
 export class ProjectTimeSheetService {
   constructor(
     @InjectModel(ProjectTimeSheet.name)
-    private readonly projectTimeSheetModel: Model<ProjectTimeSheetDocument>,
+    private readonly timeSheetModel: Model<ProjectTimeSheetDocument>,
   ) {}
 
-  // Create a new project time sheet entry
+  // Create multiple project timesheets
   async create(
-    createProjectTimeSheetDto: CreateProjectTimeSheetDto,
-  ): Promise<ProjectTimeSheet> {
-    const createdProjectTimeSheet = new this.projectTimeSheetModel(
-      createProjectTimeSheetDto,
-    );
-    return await createdProjectTimeSheet.save();
+    createTimeSheetDtos: CreateProjectTimeSheetDto[],
+  ): Promise<ProjectTimeSheet[]> {
+    const timeSheets = createTimeSheetDtos.map((dto) => ({
+      ...dto,
+      user: new Types.ObjectId(dto.user),
+      project: new Types.ObjectId(dto.project),
+    }));
+
+    try {
+      const newTimeSheets = await this.timeSheetModel.insertMany(timeSheets);
+      return this.timeSheetModel
+        .find({ _id: { $in: newTimeSheets.map((t) => t._id) } })
+        .lean()
+        .exec();
+    } catch (error) {
+      throw new Error(`Error creating project timesheets: ${error.message}`);
+    }
   }
 
-  // Find all project time sheets
+  // Get all project timesheets
   async findAll(): Promise<ProjectTimeSheet[]> {
-    return this.projectTimeSheetModel.find().exec();
+    return this.timeSheetModel.find().lean().exec();
   }
 
-  // Find a single project time sheet by ID
-  async findOne(id: string): Promise<ProjectTimeSheet> {
-    const projectTimeSheet = await this.projectTimeSheetModel
-      .findById(id)
+  // Get project timesheets by a list of IDs
+  async findManyByIds(ids: string[]): Promise<ProjectTimeSheet[]> {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    return this.timeSheetModel
+      .find({ _id: { $in: objectIds } })
+      .lean()
       .exec();
-    if (!projectTimeSheet) {
-      throw new NotFoundException(`ProjectTimeSheet with id ${id} not found`);
-    }
-    return projectTimeSheet;
   }
 
-  // Update an existing project time sheet
+  // Update multiple project timesheets
   async update(
-    id: string,
-    updateProjectTimeSheetDto: CreateProjectTimeSheetDto,
-  ): Promise<ProjectTimeSheet> {
-    const updatedProjectTimeSheet = await this.projectTimeSheetModel
-      .findByIdAndUpdate(id, updateProjectTimeSheetDto, { new: true })
-      .exec();
-    if (!updatedProjectTimeSheet) {
-      throw new NotFoundException(`ProjectTimeSheet with id ${id} not found`);
+    updateTimeSheetDtos: CreateProjectTimeSheetDto[],
+  ): Promise<ProjectTimeSheet[]> {
+    const updatedTimeSheets: ProjectTimeSheet[] = [];
+
+    for (const dto of updateTimeSheetDtos) {
+      const updated = await this.timeSheetModel
+        .findOneAndUpdate(
+          {
+            user: new Types.ObjectId(dto.user),
+            project: new Types.ObjectId(dto.project),
+          },
+          {
+            task: dto.task,
+            remark: dto.remark,
+            time: dto.time,
+          },
+          { new: true }, // Return the updated document
+        )
+        .lean()
+        .exec();
+
+      if (!updated) {
+        throw new Error(
+          `Project timesheet with user ${dto.user} and project ${dto.project} not found`,
+        );
+      }
+
+      updatedTimeSheets.push(updated);
     }
-    return updatedProjectTimeSheet;
+
+    return updatedTimeSheets;
   }
 
-  // Delete a project time sheet
-  async remove(id: string): Promise<void> {
-    const result = await this.projectTimeSheetModel
-      .deleteOne({ _id: id })
+  // Delete multiple project timesheets by IDs
+  async remove(ids: string[]): Promise<void> {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    const result = await this.timeSheetModel
+      .deleteMany({ _id: { $in: objectIds } })
       .exec();
+
     if (result.deletedCount === 0) {
-      throw new NotFoundException(`ProjectTimeSheet with id ${id} not found`);
+      throw new Error('No project timesheets were deleted');
     }
   }
 }

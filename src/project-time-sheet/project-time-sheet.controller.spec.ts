@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProjectTimeSheetController } from './project-time-sheet.controller';
 import { ProjectTimeSheetService } from './project-time-sheet.service';
