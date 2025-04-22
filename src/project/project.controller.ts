@@ -21,6 +21,11 @@ export class ProjectController {
     return this.projectService.findAll();
   }
 
+  @Get('/card')
+  async getCard(){
+    return this.projectService.getCard();
+  }
+
   // Get a single project by ID
   @Post('/findOne')
   async findOne(@Body() body: { id: string }): Promise<Project> {

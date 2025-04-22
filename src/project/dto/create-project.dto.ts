@@ -8,7 +8,7 @@ export class CreateProjectDto {
   type: string;
 
   @IsString()
-  status: string;
+  statusId: string;
 
   @IsOptional()
   startDate?: Date;
@@ -25,5 +25,5 @@ export class CreateProjectDto {
   @IsMongoId()
   developerLead: string; // Foreign key to User schema
 
-  _id: number;
+  _id: string;
 }

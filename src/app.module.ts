@@ -13,6 +13,7 @@ import { ProjectMemberModule } from './project-member/project-member.module';
 import { ProjectModule } from './project/project.module';
 import { ProjectTimeSheetModule } from './project-time-sheet/project-time-sheet.module';
 import { AuthModule } from './auth/auth.module';
+import { ProjectStatusModule } from './project-status/project-status.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AuthModule } from './auth/auth.module';
     ProjectMemberModule,
     ProjectTimeSheetModule,
     AuthModule,
+    ProjectStatusModule,
   ],
   controllers: [AppController],
   providers: [AppService],

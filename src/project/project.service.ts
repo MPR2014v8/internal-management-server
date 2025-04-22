@@ -15,6 +15,9 @@ export class ProjectService {
   async create(createProjectDtos: CreateProjectDto[]): Promise<Project[]> {
     const projects = createProjectDtos.map((dto) => ({
       ...dto,
+      statusId: dto.statusId 
+        ? new Types.ObjectId(dto.statusId)
+        : null,
       projectManager: dto.projectManager
         ? new Types.ObjectId(dto.projectManager)
         : null,
@@ -40,6 +43,11 @@ export class ProjectService {
   // Get all projects
   async findAll(): Promise<Project[]> {
     return this.projectModel.find().lean().exec();
+  }
+
+  async getCard():Promise<Project[]>{
+    
+    return this.projectModel.find().populate(['projectManager', 'businessanalystLead', 'developerLead'], ['-password','-__v']).lean().exec();
   }
 
   // Get a single project by ID// Service - findOne method
@@ -73,7 +81,9 @@ export class ProjectService {
           {
             name: dto.name,
             type: dto.type,
-            status: dto.status,
+            statusId: dto.statusId
+              ? new Types.ObjectId(dto.statusId)
+              : null,
             startDate: dto.startDate,
             dueDate: dto.dueDate,
             projectManager: dto.projectManager

@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types, Schema as MongooseSchema } from 'mongoose';
-import { User } from 'src/user/schema/user.schema'; // Import the User schema
 
 export type ProjectDocument = Project & Document;
 
@@ -14,8 +13,8 @@ export class Project {
   @Prop()
   type: string;
 
-  @Prop()
-  status: string;
+  @Prop({type: MongooseSchema.Types.ObjectId, ref: 'Status'})
+  statusId: Types.ObjectId;
 
   @Prop({ type: Date })
   startDate: Date;
