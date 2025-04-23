@@ -8,6 +8,9 @@ export class CreateProjectDto {
   type: string;
 
   @IsString()
+  description: string;
+
+  @IsString()
   statusId: string;
 
   @IsOptional()

@@ -9,13 +9,13 @@ export class ProjectService {
   constructor(
     @InjectModel(Project.name)
     private readonly projectModel: Model<ProjectDocument>,
-  ) {}
+  ) { }
 
   // Create multiple projects
   async create(createProjectDtos: CreateProjectDto[]): Promise<Project[]> {
     const projects = createProjectDtos.map((dto) => ({
       ...dto,
-      statusId: dto.statusId 
+      statusId: dto.statusId
         ? new Types.ObjectId(dto.statusId)
         : null,
       projectManager: dto.projectManager
@@ -45,9 +45,106 @@ export class ProjectService {
     return this.projectModel.find().lean().exec();
   }
 
-  async getCard():Promise<Project[]>{
-    
-    return this.projectModel.find().populate(['projectManager', 'businessanalystLead', 'developerLead'], ['-password','-__v']).lean().exec();
+  async getCard() {
+    const card = await this.projectModel.aggregate([
+      {
+      $lookup: {
+        from: 'users',
+        let: { userId: '$projectManager' },
+        pipeline: [
+        { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+        { $project: { _id: 1, name: 1 } },
+        ],
+        as: 'projectManager',
+      },
+      },
+      { $unwind: { path: '$projectManager', preserveNullAndEmptyArrays: true } },
+      {
+      $lookup: {
+        from: 'users',
+        let: { userId: '$businessanalystLead' },
+        pipeline: [
+        { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+        { $project: { _id: 1, name: 1 } },
+        ],
+        as: 'businessanalystLead',
+      },
+      },
+      { $unwind: { path: '$businessanalystLead', preserveNullAndEmptyArrays: true } },
+      {
+      $lookup: {
+        from: 'users',
+        let: { userId: '$developerLead' },
+        pipeline: [
+        { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+        { $project: { _id: 1, name: 1 } },
+        ],
+        as: 'developerLead',
+      },
+      },
+      { $unwind: { path: '$developerLead', preserveNullAndEmptyArrays: true } },
+      {
+      $lookup: {
+        from: 'projectmembers',
+        localField: '_id',
+        foreignField: 'project',
+        as: 'members',
+      },
+      },
+      {
+      $lookup: {
+        from: 'users',
+        let: { members: '$members' },
+        pipeline: [
+        {
+          $match: {
+          $expr: {
+            $in: ['$_id', { $map: { input: '$$members', as: 'm', in: '$$m.user' } }],
+          },
+          },
+        },
+        {
+          $addFields: {
+          role: {
+            $first: {
+            $map: {
+              input: {
+              $filter: {
+                input: '$$members',
+                as: 'pm',
+                cond: { $eq: ['$$pm.user', '$_id'] },
+              },
+              },
+              as: 'matched',
+              in: '$$matched.role',
+            },
+            },
+          },
+          },
+        },
+        ],
+        as: 'users',
+      },
+      },
+      {
+      $project: {
+        _id: 1,
+        name: { $ifNull: ['$name', ''] },
+        type: { $ifNull: ['$type', ''] },
+        description: { $ifNull: ['$description', ''] },
+        statusId: { $ifNull: ['$statusId', ''] },
+        startDate: { $ifNull: ['$startDate', null] },
+        dueDate: { $ifNull: ['$dueDate', null] },
+        createdAt: { $ifNull: ['$createdAt', ''] },
+        updatedAt: { $ifNull: ['$updatedAt', ''] },
+        projectManager: { $ifNull: ['$projectManager', { _id: 'Unknown', name: 'Not yet determined.' }] },
+        businessanalystLead: { $ifNull: ['$businessanalystLead', { _id: 'Unknown', name: 'Not yet determined.' }] },
+        developerLead: { $ifNull: ['$developerLead', { _id: 'Unknown', name: 'Not yet determined.' }] },
+        users: { $ifNull: ['$users', []] },
+      },
+      },
+    ]);
+    return card;
   }
 
   // Get a single project by ID// Service - findOne method
@@ -81,6 +178,7 @@ export class ProjectService {
           {
             name: dto.name,
             type: dto.type,
+            description: dto.description,
             statusId: dto.statusId
               ? new Types.ObjectId(dto.statusId)
               : null,
