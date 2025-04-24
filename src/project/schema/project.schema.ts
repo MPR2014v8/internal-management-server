@@ -16,6 +16,9 @@ export class Project {
   @Prop()
   description: string;
 
+  @Prop()
+  note: string;
+
   @Prop({type: MongooseSchema.Types.ObjectId, ref: 'Status'})
   statusId: Types.ObjectId;
 

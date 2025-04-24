@@ -92,39 +92,45 @@ export class ProjectService {
       },
       },
       {
-      $lookup: {
-        from: 'users',
-        let: { members: '$members' },
-        pipeline: [
-        {
-          $match: {
-          $expr: {
-            $in: ['$_id', { $map: { input: '$$members', as: 'm', in: '$$m.user' } }],
-          },
-          },
-        },
-        {
-          $addFields: {
-          role: {
-            $first: {
-            $map: {
-              input: {
-              $filter: {
-                input: '$$members',
-                as: 'pm',
-                cond: { $eq: ['$$pm.user', '$_id'] },
+        $lookup: {
+          from: 'users',
+          let: { members: '$members' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$_id', { $map: { input: '$$members', as: 'm', in: '$$m.user' } }],
+                },
               },
+            },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
               },
-              as: 'matched',
-              in: '$$matched.role',
             },
+            {
+              $addFields: {
+                role: {
+                  $first: {
+                    $map: {
+                      input: {
+                        $filter: {
+                          input: '$$members',
+                          as: 'pm',
+                          cond: { $eq: ['$$pm.user', '$_id'] },
+                        },
+                      },
+                      as: 'matched',
+                      in: '$$matched.role',
+                    },
+                  },
+                },
+              },
             },
-          },
-          },
+          ],
+          as: 'users',
         },
-        ],
-        as: 'users',
-      },
       },
       {
       $project: {
@@ -132,6 +138,7 @@ export class ProjectService {
         name: { $ifNull: ['$name', ''] },
         type: { $ifNull: ['$type', ''] },
         description: { $ifNull: ['$description', ''] },
+        note: {$ifNull:['$note','']},
         statusId: { $ifNull: ['$statusId', ''] },
         startDate: { $ifNull: ['$startDate', null] },
         dueDate: { $ifNull: ['$dueDate', null] },

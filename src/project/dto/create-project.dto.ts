@@ -11,6 +11,9 @@ export class CreateProjectDto {
   description: string;
 
   @IsString()
+  note: string;
+
+  @IsString()
   statusId: string;
 
   @IsOptional()
