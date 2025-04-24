@@ -179,28 +179,21 @@ export class ProjectService {
     const updatedProjects: Project[] = [];
 
     for (const dto of updateProjectDtos) {
+      const updateData: any = {};
+      const objectIdFields = ['statusId', 'projectManager', 'businessanalystLead', 'developerLead'];
+
+      for (const key in dto) {
+        if (dto[key] !== undefined) {
+          updateData[key] = objectIdFields.includes(key)
+            ? new Types.ObjectId(dto[key])
+            : dto[key];
+        }
+      }
+
       const updated = await this.projectModel
         .findOneAndUpdate(
           { _id: new Types.ObjectId(dto._id) },
-          {
-            name: dto.name,
-            type: dto.type,
-            description: dto.description,
-            statusId: dto.statusId
-              ? new Types.ObjectId(dto.statusId)
-              : null,
-            startDate: dto.startDate,
-            dueDate: dto.dueDate,
-            projectManager: dto.projectManager
-              ? new Types.ObjectId(dto.projectManager)
-              : null,
-            businessanalystLead: dto.businessanalystLead
-              ? new Types.ObjectId(dto.businessanalystLead)
-              : null,
-            developerLead: dto.developerLead
-              ? new Types.ObjectId(dto.developerLead)
-              : null,
-          },
+          updateData,
           { new: true }, // Return the updated document
         )
         .lean()
