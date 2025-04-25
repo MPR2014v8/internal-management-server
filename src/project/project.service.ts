@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -9,15 +10,13 @@ export class ProjectService {
   constructor(
     @InjectModel(Project.name)
     private readonly projectModel: Model<ProjectDocument>,
-  ) { }
+  ) {}
 
   // Create multiple projects
   async create(createProjectDtos: CreateProjectDto[]): Promise<Project[]> {
     const projects = createProjectDtos.map((dto) => ({
       ...dto,
-      statusId: dto.statusId
-        ? new Types.ObjectId(dto.statusId)
-        : null,
+      statusId: dto.statusId ? new Types.ObjectId(dto.statusId) : null,
       projectManager: dto.projectManager
         ? new Types.ObjectId(dto.projectManager)
         : null,
@@ -48,48 +47,55 @@ export class ProjectService {
   async getCard() {
     const card = await this.projectModel.aggregate([
       {
-      $lookup: {
-        from: 'users',
-        let: { userId: '$projectManager' },
-        pipeline: [
-        { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
-        { $project: { _id: 1, name: 1 } },
-        ],
-        as: 'projectManager',
+        $lookup: {
+          from: 'users',
+          let: { userId: '$projectManager' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+            { $project: { _id: 1, name: 1 } },
+          ],
+          as: 'projectManager',
+        },
       },
-      },
-      { $unwind: { path: '$projectManager', preserveNullAndEmptyArrays: true } },
       {
-      $lookup: {
-        from: 'users',
-        let: { userId: '$businessanalystLead' },
-        pipeline: [
-        { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
-        { $project: { _id: 1, name: 1 } },
-        ],
-        as: 'businessanalystLead',
+        $unwind: { path: '$projectManager', preserveNullAndEmptyArrays: true },
       },
-      },
-      { $unwind: { path: '$businessanalystLead', preserveNullAndEmptyArrays: true } },
       {
-      $lookup: {
-        from: 'users',
-        let: { userId: '$developerLead' },
-        pipeline: [
-        { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
-        { $project: { _id: 1, name: 1 } },
-        ],
-        as: 'developerLead',
+        $lookup: {
+          from: 'users',
+          let: { userId: '$businessanalystLead' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+            { $project: { _id: 1, name: 1 } },
+          ],
+          as: 'businessanalystLead',
+        },
       },
+      {
+        $unwind: {
+          path: '$businessanalystLead',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'users',
+          let: { userId: '$developerLead' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+            { $project: { _id: 1, name: 1 } },
+          ],
+          as: 'developerLead',
+        },
       },
       { $unwind: { path: '$developerLead', preserveNullAndEmptyArrays: true } },
       {
-      $lookup: {
-        from: 'projectmembers',
-        localField: '_id',
-        foreignField: 'project',
-        as: 'members',
-      },
+        $lookup: {
+          from: 'projectmembers',
+          localField: '_id',
+          foreignField: 'project',
+          as: 'members',
+        },
       },
       {
         $lookup: {
@@ -99,7 +105,10 @@ export class ProjectService {
             {
               $match: {
                 $expr: {
-                  $in: ['$_id', { $map: { input: '$$members', as: 'm', in: '$$m.user' } }],
+                  $in: [
+                    '$_id',
+                    { $map: { input: '$$members', as: 'm', in: '$$m.user' } },
+                  ],
                 },
               },
             },
@@ -133,22 +142,37 @@ export class ProjectService {
         },
       },
       {
-      $project: {
-        _id: 1,
-        name: { $ifNull: ['$name', ''] },
-        type: { $ifNull: ['$type', ''] },
-        description: { $ifNull: ['$description', ''] },
-        note: {$ifNull:['$note','']},
-        statusId: { $ifNull: ['$statusId', ''] },
-        startDate: { $ifNull: ['$startDate', null] },
-        dueDate: { $ifNull: ['$dueDate', null] },
-        createdAt: { $ifNull: ['$createdAt', ''] },
-        updatedAt: { $ifNull: ['$updatedAt', ''] },
-        projectManager: { $ifNull: ['$projectManager', { _id: 'Unknown', name: 'Not yet determined.' }] },
-        businessanalystLead: { $ifNull: ['$businessanalystLead', { _id: 'Unknown', name: 'Not yet determined.' }] },
-        developerLead: { $ifNull: ['$developerLead', { _id: 'Unknown', name: 'Not yet determined.' }] },
-        users: { $ifNull: ['$users', []] },
-      },
+        $project: {
+          _id: 1,
+          name: { $ifNull: ['$name', ''] },
+          type: { $ifNull: ['$type', ''] },
+          description: { $ifNull: ['$description', ''] },
+          note: { $ifNull: ['$note', ''] },
+          statusId: { $ifNull: ['$statusId', ''] },
+          startDate: { $ifNull: ['$startDate', null] },
+          dueDate: { $ifNull: ['$dueDate', null] },
+          createdAt: { $ifNull: ['$createdAt', ''] },
+          updatedAt: { $ifNull: ['$updatedAt', ''] },
+          projectManager: {
+            $ifNull: [
+              '$projectManager',
+              { _id: 'Unknown', name: 'Not yet determined.' },
+            ],
+          },
+          businessanalystLead: {
+            $ifNull: [
+              '$businessanalystLead',
+              { _id: 'Unknown', name: 'Not yet determined.' },
+            ],
+          },
+          developerLead: {
+            $ifNull: [
+              '$developerLead',
+              { _id: 'Unknown', name: 'Not yet determined.' },
+            ],
+          },
+          users: { $ifNull: ['$users', []] },
+        },
       },
     ]);
     return card;
@@ -180,7 +204,12 @@ export class ProjectService {
 
     for (const dto of updateProjectDtos) {
       const updateData: any = {};
-      const objectIdFields = ['statusId', 'projectManager', 'businessanalystLead', 'developerLead'];
+      const objectIdFields = [
+        'statusId',
+        'projectManager',
+        'businessanalystLead',
+        'developerLead',
+      ];
 
       for (const key in dto) {
         if (dto[key] !== undefined) {
