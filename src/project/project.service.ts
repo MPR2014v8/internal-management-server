@@ -185,7 +185,7 @@ export class ProjectService {
       for (const key in dto) {
         if (dto[key] !== undefined) {
           updateData[key] = objectIdFields.includes(key)
-            ? new Types.ObjectId(dto[key])
+            ? new Types.ObjectId(String(dto[key]))
             : dto[key];
         }
       }
