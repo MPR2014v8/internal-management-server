@@ -9,6 +9,9 @@ export type ProjectStatusDocument = ProjectStatus & Document;
 export class ProjectStatus {
   @Prop()
   title: string;
+
+  @Prop()
+  index: number
 }
 
 export const ProjectStatusSchema = SchemaFactory.createForClass(ProjectStatus);

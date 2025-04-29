@@ -31,7 +31,7 @@ export class ProjectStatusController {
   }
 
   @Patch()
-  update(@Body() updateProjectStatusDto: UpdateProjectStatusDto) {
+  update(@Body() updateProjectStatusDto: UpdateProjectStatusDto[]) {
     return this.projectStatusService.update(updateProjectStatusDto);
   }
 

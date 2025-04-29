@@ -22,31 +22,47 @@ export class ProjectStatusService implements OnModuleInit {
   async initializeDefaultStatuses(): Promise<void> {
     const defaultStatuses = ['Backlog', 'In Progress', 'Complete'];
 
-    for (const status of defaultStatuses) {
+    for (const [index, status] of defaultStatuses.entries()) {
       const exists = await this.projectStatusModel.exists({ title: status });
       if (!exists) {
-        await this.projectStatusModel.create({ title: status });
+      await this.projectStatusModel.create({ title: status, index });
       }
     }
   }
 
   async create(dto: CreateProjectStatusDto): Promise<ProjectStatus> {
-    const newStatus = new this.projectStatusModel(dto);
+    const lastIndex = await this.findLastIndex()
+    const newStatus = new this.projectStatusModel({ index: lastIndex, ...dto });
     return newStatus.save();
   }
 
+  async findLastIndex(){
+    return this.projectStatusModel.countDocuments().exec();
+  }
+
   findAll() {
-    return this.projectStatusModel.find().select('_id title').exec();
+    return this.projectStatusModel.find().select('_id title index').sort({ index: 1 }).exec();
   }
 
   findOne(id: number) {
     return `This action returns a #${id} projectStatus`;
   }
 
-  update({ _id, ...dto }: UpdateProjectStatusDto) {
-    return this.projectStatusModel
-      .findByIdAndUpdate(new Types.ObjectId(_id), dto, { new: true })
-      .exec();
+  update(dto: UpdateProjectStatusDto[]) {
+    const bulkOperations = dto.map((status) => {
+      const updateData: any = {};
+      if (status.title) updateData.title = status.title;
+      if (status.index !== undefined) updateData.index = status.index;
+
+      return {
+      updateOne: {
+        filter: { _id: new Types.ObjectId(status._id) },
+        update: { $set: updateData },
+      },
+      };
+    }).filter(operation => Object.keys(operation.updateOne.update.$set).length > 0);
+
+    return this.projectStatusModel.bulkWrite(bulkOperations);
   }
 
   remove(id: string) {
