@@ -22,7 +22,7 @@ export class User {
   title: string;
 
   @Prop()
-  isAdmin: string;
+  isAdmin: boolean;
 
   @Prop()
   isActive: string;

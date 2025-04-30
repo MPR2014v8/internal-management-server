@@ -77,6 +77,7 @@ export class UserController {
         _id: result._id,
         email: result.email,
         name: result.name,
+        isAdmin: result.isAdmin,
         createdAt: result.createdAt,
         updatedAt: result.updatedAt,
       };

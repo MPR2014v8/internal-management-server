@@ -22,7 +22,7 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<UserDocument[]> {
-    return this.userModel.find().select('id email name').exec();
+    return this.userModel.find().select('-password').exec();
   }
 
   async findById(id: string): Promise<UserDocument | null> {
